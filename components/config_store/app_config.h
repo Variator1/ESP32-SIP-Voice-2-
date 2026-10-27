@@ -15,22 +15,22 @@
 // =====================================================================
 
 // --- Wi-Fi Configuration ---
-#define WIFI_SSID              "your_wifi_ssid"
-#define WIFI_PASSWORD          "your_wifi_password"
+#define WIFI_SSID              "aaabbbccc"
+#define WIFI_PASSWORD          "19283746"
 #define WIFI_MAX_RETRY         5
 
 // --- SIP Configuration ---
-#define SIP_SERVER_IP          "192.168.1.100"
+#define SIP_SERVER_IP          "192.168.50.2"
 #define SIP_SERVER_PORT        5060
-#define SIP_USER               "1000"
-#define SIP_PASSWORD           "your_sip_password"
-#define SIP_DISPLAY_NAME       "ESP32 Phone"
+#define SIP_USER               "104"
+#define SIP_PASSWORD           "104"
+#define SIP_DISPLAY_NAME       "104"
 #define SIP_DOMAIN             SIP_SERVER_IP
 #define SIP_LOCAL_PORT         5060
 #define SIP_REGISTRATION_EXPIRY 3600
 #define SIP_RETRY_INTERVAL_MS  5000
 #define USE_SIPS               0          // 1 = SIP over TLS (experimental)
-#define SIP_TARGET_URI         "sip:1001@192.168.1.100" // Default call target
+#define SIP_TARGET_URI         "sip:103@192.168.50.2" // Default call target
 
 // --- AI & Voice Activation ---
 #define USE_WAKE_WORD          0          // esp-sr WakeNet (needs PSRAM / S3)
@@ -184,7 +184,7 @@
 #define CTRL_METHOD_BUTTONS
 //#define CTRL_METHOD_WEB
 //#define CTRL_METHOD_AUTO
-#define BUTTON_GPIO            0
+#define BUTTON_GPIO            4
 
 // --- Time / NTP (for the on-screen clock themes) ---
 #define NTP_SERVER             "pool.ntp.org"
