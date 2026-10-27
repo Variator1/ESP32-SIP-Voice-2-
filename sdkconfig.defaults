@@ -7,7 +7,7 @@ CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions.csv"
 
 # 8 MB flash assumed (needed for the WakeNet model partition). Drop to your
 # board's size if you disable wake word.
-CONFIG_ESPTOOLPY_FLASHSIZE_8MB=y
+CONFIG_ESPTOOLPY_FLASHSIZE_4MB=y
 
 # 1 kHz tick -> accurate 20 ms audio framing (pdMS_TO_TICKS(20) == 20 ticks).
 CONFIG_FREERTOS_HZ=1000
@@ -16,13 +16,13 @@ CONFIG_FREERTOS_HZ=1000
 CONFIG_ESP_MAIN_TASK_STACK_SIZE=8192
 
 # esp-sr: load WakeNet models from the SPIFFS "model" partition.
-CONFIG_MODEL_IN_SPIFFS=y
+# CONFIG_MODEL_IN_SPIFFS=y
 
 # LVGL fonts used by the UI themes (clock + labels). Without these the UI falls
 # back to the 14px default and the big clock will look small.
-CONFIG_LV_FONT_MONTSERRAT_18=y
-CONFIG_LV_FONT_MONTSERRAT_28=y
-CONFIG_LV_FONT_MONTSERRAT_48=y
+# CONFIG_LV_FONT_MONTSERRAT_18=y
+# CONFIG_LV_FONT_MONTSERRAT_28=y
+# CONFIG_LV_FONT_MONTSERRAT_48=y
 
 # ---- Recommended for STANDARD/PRO tiers (boards WITH PSRAM) ----
 # Uncomment on ESP32-WROVER / ESP32-S3 modules that have external PSRAM so the

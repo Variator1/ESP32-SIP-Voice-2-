@@ -12,20 +12,24 @@ on:
 jobs:
   # --- ESP-IDF firmware build ---
   firmware:
-    name: esp-idf (${{ matrix.target }})
+    name: esp-idf (esp32)
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        target: [esp32, esp32s3]
     steps:
       - uses: actions/checkout@v4
-      - name: Build for ${{ matrix.target }}
+      - name: Build for esp32
         uses: espressif/esp-idf-ci-action@v1
         with:
           esp_idf_version: v5.1.4
-          target: ${{ matrix.target }}
+          target: esp32
           path: '.'
+      - name: Upload Firmware Binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: esp32-sip-voice-firmware
+          path: |
+            build/bootloader/bootloader.bin
+            build/partition_table/partition-table.bin
+            build/*.bin
 
   # --- PC simulator (LVGL + SDL2) build ---
   simulator:

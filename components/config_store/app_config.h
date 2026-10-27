@@ -33,7 +33,7 @@
 #define SIP_TARGET_URI         "sip:1001@192.168.1.100" // Default call target
 
 // --- AI & Voice Activation ---
-#define USE_WAKE_WORD          1          // esp-sr WakeNet (needs PSRAM / S3)
+#define USE_WAKE_WORD          0          // esp-sr WakeNet (needs PSRAM / S3)
 // Keyword must match a WakeNet model flashed into the `model` partition and
 // selectable via `idf.py menuconfig` (ESP Speech Recognition). Free options
 // include "computer", "hiesp", "hilexin", "alexa".
@@ -83,9 +83,9 @@
 #define USE_KEYPAD_4X4_GPIO
 //#define USE_KEYPAD_I2C_PCF8574
 #define KEYPAD_I2C_ADDR 0x20
-#define USE_DISPLAY_ST7789
+//#define USE_DISPLAY_ST7789
 //#define USE_DISPLAY_ILI9341
-#define USE_TOUCH_XPT2046
+//#define USE_TOUCH_XPT2046
 
 // --- Default GPIO pin map (compile-time fallback; overridable at runtime via
 //     the Web "HW Config" page). Pin numbers are TARGET-SPECIFIC because, e.g.,
@@ -172,11 +172,11 @@
 #define AUDIO_TASK_STACK_SIZE   6144
 
 // --- Audio codec hardware driver ---
-#define USE_CODEC_ES8388
-//#define USE_CODEC_INMP441_MAX98357A
+//#define USE_CODEC_ES8388
+#define USE_CODEC_INMP441_MAX98357A
 
 // --- NAT Traversal (STUN) ---
-#define USE_STUN 1
+#define USE_STUN 0
 #define STUN_SERVER_IP         "stun.l.google.com"
 #define STUN_SERVER_PORT       19302
 
