@@ -73,6 +73,7 @@ void app_control_task(void *pvParameters) {
             ESP_LOGI(TAG, "SIP Registered. Application Idle.");
             current_app_state = APP_STATE_IDLE;
         }
+        vTaskDelay(pdMS_TO_TICKS(1000));
 
         // Add logic here to react to call state changes signaled FROM sip_client
         // e.g., if sip_client signals incoming call, update state, maybe ring a buzzer
