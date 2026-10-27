@@ -114,11 +114,11 @@ void app_main(void) {
     
     // Initialize HAL Components
     keypad_init();
-    display_tft_init();
-    touch_driver_init();
+    //display_tft_init();
+    //touch_driver_init();
     
     // Initialize Graphic UI
-    ui_lvgl_init();
+    //ui_lvgl_init();
     
     // Initialize Display
     display_init();
@@ -140,7 +140,7 @@ void app_main(void) {
 
     if (wifi_is_ap_mode()) {
         ESP_LOGI(TAG, "Running in AP Mode (Captive Portal). SIP disabled.");
-        display_update_status("192.168.4.1", "AP Setup Mode", "ESP-SIP-Setup");
+        //display_update_status("192.168.4.1", "AP Setup Mode", "ESP-SIP-Setup");
         ui_controller_init(NULL, &g_app_settings);
         return; // Stop initialization here
     }
@@ -149,7 +149,7 @@ void app_main(void) {
     get_my_ip(&my_ip);
     char ip_str[16];
     snprintf(ip_str, sizeof(ip_str), IPSTR, IP2STR(&my_ip));
-    display_update_status(ip_str, "Connecting SIP...", "");
+    //display_update_status(ip_str, "Connecting SIP...", "");
 
     // Initialize Audio Pipeline (I2S, Codec)
     // This needs the actual codec driver implementation
