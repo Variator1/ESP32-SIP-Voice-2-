@@ -400,7 +400,7 @@ static esp_err_t i2s_init(int sample_rate) {
         .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1,
         .dma_buf_count = I2S_DMA_BUF_COUNT,
         .dma_buf_len = I2S_DMA_BUF_LEN,
-        .use_apll = false,
+        .use_apll = true,
         .tx_desc_auto_clear = true,
         .fixed_mclk = 0
     };
@@ -445,6 +445,7 @@ static void i2s_set_rate(audio_pipeline_t* p, int rate) {
     esp_err_t ret = i2s_set_clk(I2S_NUM, rate, I2S_BITS_PER_SAMPLE_16BIT, I2S_CHANNEL_MONO);
     if (ret == ESP_OK) {
         p->current_i2s_rate = rate;
+        i2s_zero_dma_buffer(I2S_NUM); // Очищаем старый мусор из DMA
         ESP_LOGI(TAG, "I2S sample rate -> %d Hz", rate);
     } else {
         ESP_LOGW(TAG, "i2s_set_clk(%d) failed: %d", rate, ret);
