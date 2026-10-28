@@ -281,7 +281,9 @@ void audio_pipeline_delete(audio_pipeline_handle_t handle) {
 
 // ---- the real-time task ----------------------------------------------------
 
-static void audio_io_task(void* pv) static void audio_io_task(void* pv) {
+// ---- the real-time task ----------------------------------------------------
+
+static void audio_io_task(void* pv) {
     audio_pipeline_t* p = (audio_pipeline_t*)pv;
     size_t bytes_rw = 0;
     TickType_t last_wake = xTaskGetTickCount();
@@ -475,10 +477,10 @@ static esp_err_t i2s_deinit(void) {
 static void i2s_set_rate(audio_pipeline_t* p, int rate) {
     if (p->current_i2s_rate == rate) return;
     
-    // Полностью гасим старый драйвер I2S перед сменой частоты
+    // Очищаем DMA перед выгрузкой драйвера
+    i2s_zero_dma_buffer(I2S_NUM);
     i2s_driver_uninstall(I2S_NUM);
     
-    // Инициализируем заново с новой частотой (тут вызывается ваш стандартный i2s_init)
     if (i2s_init(rate) == ESP_OK) {
         p->current_i2s_rate = rate;
         ESP_LOGI(TAG, "I2S sample rate successfully switched -> %d Hz", rate);
