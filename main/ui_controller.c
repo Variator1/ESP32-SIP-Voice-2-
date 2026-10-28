@@ -375,7 +375,7 @@ esp_err_t ui_controller_init(sip_client_handle_t sip_client, app_settings_t *set
     g_settings = settings;
     ESP_LOGI(TAG, "Initializing UI Controller");
 #ifdef CTRL_METHOD_BUTTONS
-    xTaskCreate(button_task, "button_task", 2048, NULL, 5, NULL);
+    xTaskCreate(button_task, "button_task", 4096, NULL, 5, NULL);
 #endif
     
     // Always start webserver for Captive Portal or Web Control
