@@ -57,11 +57,24 @@ void app_control_task(void *pvParameters) {
 
     while(1) {
         // Проверяем очередь событий (например, нажатие кнопки)
+        // Проверяем очередь событий (например, нажатие кнопки)
         if (app_event_queue && xQueueReceive(app_event_queue, &event, 0) == pdTRUE) {
             if (event == APP_EVENT_BUTTON_PRESSED) {
-                ESP_LOGI(TAG, "Processing button press -> initiating SIP call...");
                 if (g_sip_client) {
-                    sip_client_initiate_call(g_sip_client, SIP_TARGET_URI);
+                    sip_call_state_t st = sip_client_get_call_state(g_sip_client);
+                    
+                    if (st == SIP_CALL_STATE_IDLE) {
+                        ESP_LOGI(TAG, "Button pressed -> Initiating outgoing call...");
+                        sip_client_initiate_call(g_sip_client, SIP_TARGET_URI);
+                    } 
+                    else if (st == SIP_CALL_STATE_INCOMING) {
+                        ESP_LOGI(TAG, "Button pressed -> Answering incoming call...");
+                        sip_client_answer_call(g_sip_client);
+                    } 
+                    else {
+                        ESP_LOGI(TAG, "Button pressed -> Terminating active call...");
+                        sip_client_terminate_call(g_sip_client);
+                    }
                 }
             }
         }
