@@ -281,7 +281,7 @@ void audio_pipeline_delete(audio_pipeline_handle_t handle) {
 
 // ---- the real-time task ----------------------------------------------------
 
-static void audio_io_task(void* pv) {
+static void audio_io_task(void* pv) static void audio_io_task(void* pv) {
     audio_pipeline_t* p = (audio_pipeline_t*)pv;
     size_t bytes_rw = 0;
     TickType_t last_wake = xTaskGetTickCount();
@@ -296,6 +296,8 @@ static void audio_io_task(void* pv) {
     ESP_LOGI(TAG, "Audio I/O task started.");
 
     bool was_running = false;
+    int log_counter = 0; // Счетчик для редких логов (раз в секунду)
+
     while (1) {
         if (!p->is_running) {
             if (was_running) {
@@ -336,8 +338,13 @@ static void audio_io_task(void* pv) {
         was_running = true;
 
         // --- Capture mic -> AEC -> encode -> send ---
-        if (i2s_read(I2S_NUM, p->mic_pcm, N * sizeof(int16_t), &bytes_rw, ticks_per_frame * 2) == ESP_OK
-            && bytes_rw == (size_t)(N * sizeof(int16_t))) {
+        esp_err_t r_err = i2s_read(I2S_NUM, p->mic_pcm, N * sizeof(int16_t), &bytes_rw, ticks_per_frame * 2);
+        if (r_err == ESP_OK && bytes_rw == (size_t)(N * sizeof(int16_t))) {
+
+            // --- ОТЛАДКА: Считаем среднюю громкость микрофона ---
+            int32_t mic_sum = 0;
+            for (int i = 0; i < N; i++) mic_sum += abs(p->mic_pcm[i]);
+            int mic_avg = mic_sum / N;
 
             // Echo cancellation using the last frame we played as reference.
             if (!aec_filter_process(&p->aec, p->mic_pcm, p->ref_pcm, p->clean_pcm)) {
@@ -345,12 +352,26 @@ static void audio_io_task(void* pv) {
             }
 
             int enc_len = codec_encode(p, p->clean_pcm, N);
+            
+            // Логируем раз в секунду (при 20мс фреймах 50 итераций = 1 сек)
+            if (++log_counter >= 50) {
+                log_counter = 0;
+                ESP_LOGI(TAG, "AUDIO STATS: rate=%d Hz | Mic Avg: %d | Enc Bytes: %d | Remote OK: %d", 
+                         p->current_i2s_rate, mic_avg, enc_len, remote_valid);
+            }
+
             if (enc_len > 0 && p->rtp_session && remote_valid) {
                 rtp_send_packet(p->rtp_session, &remote_ip, remote_port,
                                 p->rtp_payload_type, ts, first_pkt ? 1 : 0,
                                 p->enc_buf, enc_len);
                 ts += p->rtp_ts_increment;
                 first_pkt = false;
+            }
+        } else {
+            if (r_err != ESP_OK) {
+                ESP_LOGW(TAG, "i2s_read error: 0x%x", r_err);
+            } else {
+                ESP_LOGW(TAG, "i2s_read short read: got %d / expected %d bytes", (int)bytes_rw, (int)(N * sizeof(int16_t)));
             }
         }
 
@@ -378,10 +399,21 @@ static void audio_io_task(void* pv) {
             if (play_samples <= 0) play_samples = N;
             if (play_samples > AUDIO_BUF_SAMPLES) play_samples = AUDIO_BUF_SAMPLES;
 
+            // --- ОТЛАДКА: Уровень сигнала динамика ---
+            int32_t play_sum = 0;
+            for (int i = 0; i < play_samples; i++) play_sum += abs(p->play_pcm[i]);
+            int play_avg = play_sum / play_samples;
+            if (play_avg > 5000) { // Если идет громкий звук/шум
+                // ESP_LOGD(TAG, "Play Avg: %d", play_avg);
+            }
+
             // Keep a copy as the AEC reference for the next captured frame.
             memcpy(p->ref_pcm, p->play_pcm, play_samples * sizeof(int16_t));
 
-            i2s_write(I2S_NUM, p->play_pcm, play_samples * sizeof(int16_t), &bytes_rw, portMAX_DELAY);
+            esp_err_t w_err = i2s_write(I2S_NUM, p->play_pcm, play_samples * sizeof(int16_t), &bytes_rw, portMAX_DELAY);
+            if (w_err != ESP_OK || bytes_rw != (size_t)(play_samples * sizeof(int16_t))) {
+                ESP_LOGW(TAG, "i2s_write warning: err=0x%x, written=%d/%d", w_err, (int)bytes_rw, (int)(play_samples * sizeof(int16_t)));
+            }
         }
 
         vTaskDelayUntil(&last_wake, ticks_per_frame);
