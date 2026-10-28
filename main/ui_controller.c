@@ -13,6 +13,19 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "freertos/FreeRTOS.h"
+#include "freertos/queue.h"
+
+// Экспортированная из main.c очередь
+extern QueueHandle_t app_event_queue;
+
+// Внешняя задача опроса кнопок (реализована в модуле кнопок)
+extern void button_task(void *pvParameter);
+
+typedef enum {
+    APP_EVENT_BUTTON_PRESSED,
+} app_event_t;
+
 static const char *TAG = "UI_CTRL";
 static sip_client_handle_t g_sip_client = NULL;
 static app_settings_t *g_settings = NULL;
@@ -73,18 +86,15 @@ static void button_task(void *arg) {
     while(1) {
         int state = gpio_get_level(BUTTON_GPIO);
         if (state == 0 && last_state == 1) {
-            ESP_LOGI(TAG, "Button Pressed!");
-            if (g_sip_client) {
-                sip_call_state_t st = sip_client_get_call_state(g_sip_client);
-                if (st == SIP_CALL_STATE_IDLE) {
-                    sip_client_initiate_call(g_sip_client, SIP_TARGET_URI);
-                } else if (st == SIP_CALL_STATE_INCOMING) {
-                    sip_client_answer_call(g_sip_client);
-                } else {
-                    sip_client_terminate_call(g_sip_client);
-                }
+            ESP_LOGI(TAG, "Button Pressed! Queuing call request...");
+            
+            // Безопасно отправляем событие в очередь через FreeRTOS
+            if (app_event_queue) {
+                app_event_t event = APP_EVENT_BUTTON_PRESSED;
+                xQueueSend(app_event_queue, &event, 0);
             }
-            vTaskDelay(pdMS_TO_TICKS(500));
+            
+            vTaskDelay(pdMS_TO_TICKS(500)); // Антидребезг
         }
         last_state = state;
         vTaskDelay(pdMS_TO_TICKS(50));
@@ -374,11 +384,12 @@ esp_err_t ui_controller_init(sip_client_handle_t sip_client, app_settings_t *set
     g_sip_client = sip_client;
     g_settings = settings;
     ESP_LOGI(TAG, "Initializing UI Controller");
+    
 #ifdef CTRL_METHOD_BUTTONS
+    // Увеличен стек с 2048 до 4096 байт для надежности
     xTaskCreate(button_task, "button_task", 4096, NULL, 5, NULL);
 #endif
     
-    // Always start webserver for Captive Portal or Web Control
     start_webserver();
 
 #ifdef CTRL_METHOD_AUTO
@@ -387,12 +398,18 @@ esp_err_t ui_controller_init(sip_client_handle_t sip_client, app_settings_t *set
     return ESP_OK;
 }
 
+// Вызывается при нажатии кнопки или срабатывании триггера
 void ui_controller_wake_word_trigger(void) {
     if (g_sip_client) {
         sip_call_state_t st = sip_client_get_call_state(g_sip_client);
         if (st == SIP_CALL_STATE_IDLE) {
-            ESP_LOGI(TAG, "Wake word triggered! Initiating call...");
-            sip_client_initiate_call(g_sip_client, SIP_TARGET_URI);
+            ESP_LOGI(TAG, "Button / Wake word triggered! Queuing call request...");
+            
+            // Безопасно отправляем событие в очередь вместо тяжелого прямого вызова
+            if (app_event_queue) {
+                app_event_t event = APP_EVENT_BUTTON_PRESSED;
+                xQueueSend(app_event_queue, &event, 0);
+            }
         }
     }
 }
