@@ -179,7 +179,7 @@ void app_main(void) {
 
     init_sntp();
 
-    xTaskCreate(app_control_task, "app_ctrl", 4096, NULL, 6, NULL);
+    xTaskCreate(app_control_task, "app_ctrl", 8192, NULL, 6, NULL);
 
     ESP_LOGI(TAG, "Initialization Complete. Waiting for Wi-Fi connection...");
 }
