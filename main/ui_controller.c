@@ -20,7 +20,7 @@
 extern QueueHandle_t app_event_queue;
 
 // Внешняя задача опроса кнопок (реализована в модуле кнопок)
-extern void button_task(void *pvParameter);
+
 
 typedef enum {
     APP_EVENT_BUTTON_PRESSED,

@@ -103,9 +103,9 @@ static void on_call_ended(const char *call_id)    { (void)call_id; ui_lvgl_switc
 static void on_registration_status(bool registered) { ui_lvgl_set_registered(registered); }
 
 static void init_sntp(void) {
-    sntp_setoperatingmode(SNTP_OPMODE_POLL);
-    sntp_setservername(0, NTP_SERVER);
-    sntp_init();
+    esp_sntp_setoperatingmode(SNTP_OPMODE_POLL);
+    esp_sntp_setservername(0, NTP_SERVER);
+    esp_sntp_init();
     setenv("TZ", TIMEZONE, 1);
     tzset();
     ESP_LOGI(TAG, "SNTP started (%s, TZ=%s)", NTP_SERVER, TIMEZONE);
